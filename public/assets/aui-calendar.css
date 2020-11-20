@@ -1,0 +1,75 @@
+@font-face {
+  font-family: 'Glyphicons Halflings';
+
+  src: url('./bootstrap/fonts/glyphicons-halflings-regular.eot');
+  src: url('./bootstrap/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('./bootstrap/fonts/glyphicons-halflings-regular.woff') format('woff'), url('./bootstrap/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('./bootstrap/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+}
+.glyphicon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.glyphicon-chevron-left:before {
+  content: "\e079";
+}
+.glyphicon-chevron-right:before {
+  content: "\e080";
+}
+.visible-xs, .visible-sm, .visible-md, .visible-lg {
+    display: none!important;
+}
+
+@media (max-width: 767px){
+    .visible-xs {
+        display: block!important;
+    }   
+    .form-control.visible-xs{
+        height:auto !important;
+    } 
+    .hidden-xs {
+        display: none !important;
+      }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .hidden-sm {
+    display: none !important;
+  }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .hidden-md {
+    display: none !important;
+  }
+}
+@media (min-width: 1200px) {
+  .hidden-lg {
+    display: none !important;
+  }
+}
+.popover{
+    z-index:1001 !important;    
+}
+#loadingModal{
+    background: rgba(0, 0, 0, 0.5);
+}
+#loadingModal .modal-dialog{
+    box-shadow:none !important;
+    top:45%;
+}
+#loadingModal .modal-content{
+    background: transparent;
+    box-shadow: none;
+    border: none;
+}
+#loadingModal img{
+    margin: 0 auto;
+    display: block;
+    width:100px;
+}
