@@ -106,10 +106,10 @@ if (ENVIRONMENT == 'local') {
 	define('SCB_TERMINAL', '16118978'); 
 	define('MAIN_WEBSITE_THAI_URL', 'http://s.english-gang.fxs-dev.net/');
 	define('MAIN_WEBSITE_URL', 'http://english-gang.fxs-dev.net/');
-	define('ADMIN_PORTAL_URL', 'http://portal.english-gang.fxs-dev.net/admin/');
+	define('ADMIN_PORTAL_URL', 'http://portal.english-gang-corp.fxs-dev.net/admin/');
 	define('WP_ADMIN_URL', 'http://english-gang.fxs-dev.net/wp-admin/');
-	define('STUDENT_PORTAL_URL', 'http://learn.english-gang.fxs-dev.net/');
-	define('TEACHER_PORTAL_URL', 'http://portal.english-gang.fxs-dev.net/');
+	define('STUDENT_PORTAL_URL', 'http://learn.english-gang-corp.fxs-dev.net/');
+	define('TEACHER_PORTAL_URL', 'http://portal.english-gang-corp.fxs-dev.net/');
 	define('SUPPORT_EMAIL', 'gerry@fxsiteworks.com');
 	define('ADMIN_CLASS_NOTIFICATION', 'gerry@fxsiteworks.com');
 
