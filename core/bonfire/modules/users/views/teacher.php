@@ -322,26 +322,30 @@ $(document).ready(function() {
                         //$end_date = strtotime($booked_slot['available_end_date']);
                         //$available_end_date = date("Y-m-d", strtotime("-1 month", $end_date));
                         
-                        $explode_end_date = explode('-',$booked_slot['available_end_date']);
+                        //$explode_end_date = explode('-',$booked_slot['available_end_date']);
+                        $explode_end_date = explode('-',$booked_slot['class_end_date']);
                         $event_end_month = $explode_end_date[1]-1;
                         $event_end_date = $explode_end_date[0].','.$event_end_month.','.$explode_end_date[2];
                         
                         $available_end_n_date = $event_end_date;
                         
                         //$available_end_n_date = str_replace('-',',',$available_end_date);
-                        $available_end_time = str_replace(':',',',$booked_slot['available_end_time']);
+                        //$available_end_time = str_replace(':',',',$booked_slot['available_end_time']);
+                        $available_end_time = str_replace(':',',',$booked_slot['class_end_time']);
                         
                         //$start_date = strtotime($booked_slot['available_start_date']);
                         //$available_start_date = date("Y-m-d", strtotime("-1 month", $start_date));
                         
-                        $explode_start_date = explode('-',$booked_slot['available_start_date']);
+                        //$explode_start_date = explode('-',$booked_slot['available_start_date']);
+                        $explode_start_date = explode('-',$booked_slot['class_start_date']);
                         $event_start_month = $explode_start_date[1]-1;
                         $event_start_date = $explode_start_date[0].','.$event_start_month.','.$explode_start_date[2];
                         
                         $available_start_n_date = $event_start_date;
                         
                         //$available_start_n_date = str_replace('-',',',$available_start_date);
-                        $available_start_time = str_replace(':',',',$booked_slot['available_start_time']);
+                        //$available_start_time = str_replace(':',',',$booked_slot['available_start_time']);
+                        $available_start_time = str_replace(':',',',$booked_slot['class_start_time']);
                         
                         $title = lang('bf_lesson').' '.$booked_slot['lesson_number'].' [ '.$booked_slot['topic'].' ]';
 
@@ -541,6 +545,10 @@ $(document).ready(function() {
                                    else if(response.status == "choose_previous_date_time"){
                                         $('.scheduler-event').css('cursor','default'); 
                                         toastr.error('<?php e(lang('booking_err_cant_select_date')); ?>');
+                                   }
+                                   else if(response.status == "no_hour_slot"){
+                                        $('.scheduler-event').css('cursor','default'); 
+                                        toastr.error('<?php e(lang('booking_err_teacher_has_not_hour_slot')); ?>');
                                    } 
                                    else{
                                         $('.scheduler-event').css('cursor','default');

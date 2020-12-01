@@ -1112,7 +1112,7 @@ class Users extends Front_Controller
             }
         }
         
-        $this->db->select('t.*,cu.topic,cu.lesson_number,c.student_id');
+        $this->db->select('t.*,cu.topic,cu.lesson_number,c.student_id,c.*, c.student_id, c.id as class_id');
         $this->db->from('teacher_availability as t');
         $this->db->join('class_schedules as c','c.teacher_id = t.teacher_id');
         $this->db->join('curriculum as cu','cu.id = c.curriculum_id');
@@ -1120,7 +1120,7 @@ class Users extends Front_Controller
         $this->db->where('c.class_start_date = t.available_start_date');
         $this->db->where('c.class_start_time = t.available_start_time');
         $this->db->where('c.class_end_date = t.available_end_date');
-        $this->db->where('c.class_end_time = t.available_end_time');
+        //$this->db->where('c.class_end_time = t.available_end_time');
         $this->db->where(array('t.teacher_id'=>$teacher_id));
         // $this->db->where(array('c.student_id'=>$student_id));
         $this->db->where(array('c.status'=>CLASS_STATUS_BOOKED));
@@ -1136,13 +1136,28 @@ class Users extends Front_Controller
                 $booked_slot_ids[] = $booking['id'];
             }
         }
+        
+        $booked_slot_arr = array();
+        if (empty($booked_slots) === false) {
+            $i = 0;
+            foreach ($booked_slots as $booking) {
+                $booked_slot_arr['class_start_time'][] = $booking['class_start_date'].' '.$booking['class_start_time'];
+                $booked_slot_arr['class_start_time'][] = $booking['class_start_date'].' '.date("H:i:s", strtotime("+30 minutes", strtotime($booking['class_start_time'])));    
+                $booked_slot_arr['class_end_time'][] = $booking['class_end_date'].' '.$booking['class_end_time'];
+                $booked_slot_arr['class_end_time'][] = $booking['class_end_date'].' '.date("H:i:s", strtotime("-30 minutes", strtotime($booking['class_end_time'])));
+            }
+        }
 
         $this->db->select('t.*');
         $this->db->from('teacher_availability as t');
         $this->db->where(array('t.teacher_id'=>$teacher_id));
         $this->db->where("CONCAT(t.available_start_date,' ',t.available_start_time) >= ",$new_date_time);
-        if (empty($booked_slots) === false) {
+        /*if (empty($booked_slots) === false) {
             $this->db->where_not_in('id', $booked_slot_ids);
+        }*/
+        if (empty($booked_slot_arr) === false) {
+            $this->db->where_not_in("CONCAT(t.available_start_date,' ',t.available_start_time)", array_unique($booked_slot_arr['class_start_time']));
+            $this->db->where_not_in("CONCAT(t.available_end_date,' ',t.available_end_time)", array_unique($booked_slot_arr['class_end_time']));
         }
         $prevQuery = $this->db->get();
         $interviews = $prevQuery->result_array();
@@ -1356,412 +1371,425 @@ class Users extends Front_Controller
                 
                 $available_slot = $teacher_details[0]['available_slot'];
                 
-                if ($this->class_schedules_model->has_class_booking($available_start_date, $start_time, $teacher_id) === false) {
+                //check if teacher has slot for 1 hour
+                if($this->user_model->check_teacher_one_hour_slot($available_start_date, $start_time, $teacher_id, true)){
                     
-                    $last_class_details = $this->student_subscriptions_model->get_last_class($user_id);
-                    if(empty($last_class_details)){
-                        $has_future_class = false; 
-                    } else {
-            
-                        $class_start_time = strtotime($last_class_details[0]['class_start_time']);
-                        $last_class_start_time = date("H:i:s", strtotime("+30 minutes", $class_start_time));
-                        
-                        $last_class_start_date = date("Y-m-d", strtotime($last_class_details[0]['class_start_date']));
-                        $last_class_start_date_time = date("Y-m-d H:i:s", strtotime($last_class_start_date.' '.$last_class_start_time));
-                        
-                        $explode_start_date_time = explode(' ',$post_data['start']);
-                        
-                        $explode_e_start_date = explode('-',$explode_start_date_time[0]);
-                        $event_start_month = $explode_e_start_date[1]+1;
-                        $event_start_date = $explode_e_start_date[0].'-'.$event_start_month.'-'.$explode_e_start_date[2];
-                        
-                        $explode_start_date = date("Y-m-d", strtotime($event_start_date));
-                        
-                        $explode_start_time = date("H:i:s", strtotime($explode_start_date_time[1]));                        
-                        $event_start_date_time = date("Y-m-d H:i:s", strtotime($explode_start_date.' '.$explode_start_time));
-
-                        $check = false;
-                        $has_future_class = false; 
-                        if (isset($_POST['double_class'])) {
-                            if ($_POST['double_class'] == '1') {
+                    if ($this->class_schedules_model->has_class_booking($available_start_date, $start_time, $teacher_id) === false) {
+                    
+                        $last_class_details = $this->student_subscriptions_model->get_last_class($user_id);
+                        if(empty($last_class_details)){
+                            $has_future_class = false; 
+                        } else {
+                
+                            $class_start_time = strtotime($last_class_details[0]['class_start_time']);
+                            $last_class_start_time = date("H:i:s", strtotime("+30 minutes", $class_start_time));
+                            
+                            $last_class_start_date = date("Y-m-d", strtotime($last_class_details[0]['class_start_date']));
+                            $last_class_start_date_time = date("Y-m-d H:i:s", strtotime($last_class_start_date.' '.$last_class_start_time));
+                            
+                            $explode_start_date_time = explode(' ',$post_data['start']);
+                            
+                            $explode_e_start_date = explode('-',$explode_start_date_time[0]);
+                            $event_start_month = $explode_e_start_date[1]+1;
+                            $event_start_date = $explode_e_start_date[0].'-'.$event_start_month.'-'.$explode_e_start_date[2];
+                            
+                            $explode_start_date = date("Y-m-d", strtotime($event_start_date));
+                            
+                            $explode_start_time = date("H:i:s", strtotime($explode_start_date_time[1]));                        
+                            $event_start_date_time = date("Y-m-d H:i:s", strtotime($explode_start_date.' '.$explode_start_time));
+    
+                            $check = false;
+                            $has_future_class = false; 
+                            if (isset($_POST['double_class'])) {
+                                if ($_POST['double_class'] == '1') {
+                                    $check = true;
+                                }
+                            } else {
                                 $check = true;
                             }
-                        } else {
-                            $check = true;
-                        }
-
-                        if ($check === true) {
-                            //try new way to check due to errors in past bookings
-                            $get_max_date = $this->student_subscriptions_model->get_max_date($user_id);
-                            
-                            if ($available_start_date < $get_max_date) {
-                                $has_future_class = true; 
-                            } elseif ($available_start_date == $get_max_date) { // last booking date is on same day so..
+    
+                            if ($check === true) {
+                                //try new way to check due to errors in past bookings
+                                $get_max_date = $this->student_subscriptions_model->get_max_date($user_id);
                                 
-                                // .. check time also
-                                $get_max_time = $this->student_subscriptions_model->get_max_time($user_id, $get_max_date);
-                                
-                                if($start_time < $get_max_time){
-                                    $has_future_class = true;
-                                } else {
-                                    $has_future_class = false;
+                                if ($available_start_date < $get_max_date) {
+                                    $has_future_class = true; 
+                                } elseif ($available_start_date == $get_max_date) { // last booking date is on same day so..
+                                    
+                                    // .. check time also
+                                    $get_max_time = $this->student_subscriptions_model->get_max_time($user_id, $get_max_date);
+                                    
+                                    if($start_time < $get_max_time){
+                                        $has_future_class = true;
+                                    } else {
+                                        $has_future_class = false;
+                                    }
                                 }
                             }
                         }
-                    }
-
-                    if(isset($post_data['has_future_class']) && $post_data['has_future_class'] === 'yes') {
-                        $has_future_class = true; 
-                    } 
-
-                    $allowed = true;
-                    if ($allowed === true) {
-                         
-                        $teacher_meta = $this->user_model->find_user_and_meta($teacher_id); 
-                        $teacher_name = @$teacher_meta->first_name . " " . @$teacher_meta->last_name;
-                        $teacher_email = $teacher_meta->email;
-                         
-                        $student_meta = $this->user_model->find_user_and_meta($user_id); 
-                        $student_name = @$student_meta->first_name . " " . @$student_meta->last_name;
-                        $student_email = $student_meta->email;
-                        
-                        $user_sess = $this->session->userdata('user');
-                        
-                        $zoom_owner_email = $teacher_email;
-                        $zoom_url = @$teacher_meta->zoom_url;
-                        $zoom_id = NULL;
-                        $zoom_owner_password = NULL;
-
-                        
-                        $previous_lesson = $curriculum[0]['previous_lesson'];
-                        $curriculum_id = $curriculum[0]['id'];
-                        
-                        $curr_date_time = date("Y-m-d H:i:s");
-                        $student_details = $this->student_subscriptions_model->get_current_package($user_id);
-                        
-                        $data['class_start_date'] = $available_start_date;
-                        $data['class_start_time'] = $start_time;
-                        $data['class_end_date'] = $teacher_details[0]['available_end_date'];
-                        $data['class_end_time'] = $teacher_details[0]['available_end_time'];
-                        $data['teacher_id'] = $teacher_id;
-                        $data['student_id'] = $user_id;
-                        $data['curriculum_id'] = $curriculum_id;
-                        $data['is_peak_period'] = $is_peak_period;
-                        $data['zoom_url'] = $zoom_url;
-                        $data['zoom_id'] = $zoom_id;
-                        $data['zoom_owner'] = $zoom_owner_email;
-                        $data['zoom_meeting_start'] = NULL;
-                        $data['zoom_meeting_end'] = NULL;
-                        $data['subscription_id'] = $student_details[0]['id'];
-                        $data['status'] = CLASS_STATUS_BOOKED;
-                        $data['update_google'] = '1';
-                        $data['created_on'] = $curr_date_time;
-                        
-                        if($previous_lesson == '0'){
-                            $active_lesson = $curriculum[0]['active'];
-                        }
-                        else{
-                            $this->db->select('*');
-                            $this->db->from('curriculum');
-                            $this->db->where("previous_lesson",$previous_lesson);
-                            $prevQuery_2 = $this->db->get();
-                            $curriculum_2 = $prevQuery_2->result_array();
-                            $active_lesson = $curriculum_2[0]['active'];
-                        }
+    
+                        if(isset($post_data['has_future_class']) && $post_data['has_future_class'] === 'yes') {
+                            $has_future_class = true; 
+                        } 
+    
+                        $allowed = true;
+                        if ($allowed === true) {
+                             
+                            $teacher_meta = $this->user_model->find_user_and_meta($teacher_id); 
+                            $teacher_name = @$teacher_meta->first_name . " " . @$teacher_meta->last_name;
+                            $teacher_email = $teacher_meta->email;
+                             
+                            $student_meta = $this->user_model->find_user_and_meta($user_id); 
+                            $student_name = @$student_meta->first_name . " " . @$student_meta->last_name;
+                            $student_email = $student_meta->email;
                             
-                        if(!empty($active_lesson) && $active_lesson == '1'){
+                            $user_sess = $this->session->userdata('user');
+                            
+                            $zoom_owner_email = $teacher_email;
+                            $zoom_url = @$teacher_meta->zoom_url;
+                            $zoom_id = NULL;
+                            $zoom_owner_password = NULL;
+    
+                            
+                            $previous_lesson = $curriculum[0]['previous_lesson'];
+                            $curriculum_id = $curriculum[0]['id'];
+                            
+                            $curr_date_time = date("Y-m-d H:i:s");
+                            $student_details = $this->student_subscriptions_model->get_current_package($user_id);
+                            
+                            $n_start_time_1 = date('H:i:s', strtotime($start_time));
+                            $n_start_time_2 = date("H:i:s", strtotime("+30 minutes", strtotime($start_time)));
+                            $n_end_time_1 = $teacher_details[0]['available_end_time'];
+                            $n_end_time_2 = date("H:i:s", strtotime("+30 minutes", strtotime($n_end_time_1)));
+                            
+                            $data['class_start_date'] = $available_start_date;
+                            $data['class_start_time'] = $start_time;
+                            $data['class_end_date'] = $teacher_details[0]['available_end_date'];
+                            $data['class_end_time'] = $n_end_time_2;
+                            $data['teacher_id'] = $teacher_id;
+                            $data['student_id'] = $user_id;
+                            $data['curriculum_id'] = $curriculum_id;
+                            $data['is_peak_period'] = $is_peak_period;
+                            $data['zoom_url'] = $zoom_url;
+                            $data['zoom_id'] = $zoom_id;
+                            $data['zoom_owner'] = $zoom_owner_email;
+                            $data['zoom_meeting_start'] = NULL;
+                            $data['zoom_meeting_end'] = NULL;
+                            $data['subscription_id'] = $student_details[0]['id'];
+                            $data['status'] = CLASS_STATUS_BOOKED;
+                            $data['update_google'] = '1';
+                            $data['created_on'] = $curr_date_time;
+                            
+                            if($previous_lesson == '0'){
+                                $active_lesson = $curriculum[0]['active'];
+                            }
+                            else{
+                                $this->db->select('*');
+                                $this->db->from('curriculum');
+                                $this->db->where("previous_lesson",$previous_lesson);
+                                $prevQuery_2 = $this->db->get();
+                                $curriculum_2 = $prevQuery_2->result_array();
+                                $active_lesson = $curriculum_2[0]['active'];
+                            }
                                 
-                            $insert = $this->db->insert('class_schedules',$data);
-                            $insert_id = $this->db->insert_id();
-
-                            // has future classes so neeed to reset curriculum ids to get in correct 
-                            // order again
-
-                            if ($has_future_class === true) {
-
-                                log_activity(
-                                    $user_id,
-                                    'Class ID ' . $insert_id . ' has future classes set',
-                                    'class_schedules'
-                                );
-
-
-                                $all_future_classes = $this->user_model->get_future_classes($insert_id);
-                                $reset_curriculum_id = $all_future_classes[0]['curriculum_id'];
-                                $curriculum_id = $reset_curriculum_id; // reset curriculum id for booked lesson
-
-                                $this->db->where("id",$insert_id);
-                                $update = $this->db->update('class_schedules',array('curriculum_id'=>$reset_curriculum_id, 'update_google' => '1'));
-
-
-                                $count = 0;
-                                foreach ($all_future_classes as $future) {
+                            if(!empty($active_lesson) && $active_lesson == '1'){
                                     
-                                    $class_schedule_to_be_updated = $future['id'];
-                                    if (isset($cid) === false) {
-                                        $cid = $reset_curriculum_id;
-                                    }
-
-                                    $new_cid = $this->student_subscriptions_model->get_next_class_from_curriculum_id($cid);
-                                    $next_curriculum_id = $new_cid[0]->id;
-
-                                    $this->db->where("id", $class_schedule_to_be_updated);
-                                    $update = $this->db->update('class_schedules',array('curriculum_id'=>$next_curriculum_id, 'update_google' => '1'));
-
+                                $insert = $this->db->insert('class_schedules',$data);
+                                $insert_id = $this->db->insert_id();
+    
+                                // has future classes so neeed to reset curriculum ids to get in correct 
+                                // order again
+    
+                                if ($has_future_class === true) {
+    
                                     log_activity(
-                                    $user_id,
-                                    'Class ID ' . $class_schedule_to_be_updated . ' has been reset due to class booking ' . $insert_id,
-                                    'class_schedules'
-                                );
-
-                                    $cid = $next_curriculum_id;
-                                }
-                            } 
-
-                            if($insert_id){
-                                    
-                                $this->db->where("teacher_id ",$teacher_id);
-                                $this->db->where("available_start_date ",$available_start_date);
-                                $this->db->where("available_end_date ",$available_end_date);
-                                $this->db->where("available_start_time ",$start_time);
-                                $this->db->where("available_end_time ",$end_time);
-                                $update = $this->db->update('teacher_availability',array('available_slot'=>0));
-                                
-                                if($this->db->affected_rows() > 0){
-                                    
-                                    // update Google calendar for single new class
-                                    $target_time_zone = new DateTimeZone(date_default_timezone_get());
-                                    $date_time = new DateTime('now', $target_time_zone);
-                                    $gmt_timezone = $date_time->format('P');;
-                                    
-                                    $calendar_start_date = $available_start_date.'T'.date('H:i:s',strtotime($start_time)).'.000'.$gmt_timezone;
-                                    $calendar_end_date = $available_end_date.'T'.date('H:i:s',strtotime($end_time)).'.000'.$gmt_timezone;
-                                    
-                                    $start_time = date('H:i A', strtotime($start_time));
-                  
-                                    $curriculum_details = $this->curriculum_model->load_curriculum_details($curriculum_id);
-                                    
-                                    $calendarId = $this->config->item('calendar_id');
-
-                                    $this->load->library('googleapi');
-                                    $this->calendarapi = new Google_Service_Calendar($this->googleapi->client());
-                                    
-                                    $title_html = 'EG-'.$insert_id.' ['.$student_name.'-'.$teacher_name.' - '.$zoom_url.'] '.$curriculum_details['topic']; 
-
-                                    // $event = new Google_Service_Calendar_Event();
-                                    // $event->setSummary($title_html);
-                                    // $cal_start = new Google_Service_Calendar_EventDateTime();
-                                    // $cal_start->setDateTime($calendar_start_date);
-                                    // $event->setStart($cal_start);
-                                    // $cal_end = new Google_Service_Calendar_EventDateTime();
-                                    // $cal_end->setDateTime($calendar_end_date);
-                                    // $event->setEnd($cal_end);
-                                    
-                                    // // $attendee1 = new Google_Service_Calendar_EventAttendee();
-                                    // // $attendee1->setEmail($teacher_email);
-                                    
-                                    // $attendee2 = new Google_Service_Calendar_EventAttendee();
-                                    // $attendee2->setEmail($student_email);
-                                    
-                                    // $attendees = array($attendee2);
-                                    // $event->attendees = $attendees;
-                                    
-                                    // $event->setICalUID('english_gang_'.$insert_id);
-                                    
-                                    // $importedEvent = $this->calendarapi->events->import($calendarId, $event);
-                                    
-                                    // $cal_event_id = $importedEvent->getId();
-                                    
-                                    // $optionalArguments = array("sendUpdates"=>"all");
-                                    // $this->calendarapi->events->update($calendarId, $cal_event_id, $event, $optionalArguments);
-                                    
-                                    // $this->db->where("id ",$insert_id);
-                                    // $update_class_schedule = $this->db->update('class_schedules',array('calendar_event_id'=>$cal_event_id));
-
-                                    if ($has_future_class === true) {
-                                        // Update future classes in Google Calendar
-                                        $this->user_model->reset_googlecal_future_classes($insert_id);                                        
+                                        $user_id,
+                                        'Class ID ' . $insert_id . ' has future classes set',
+                                        'class_schedules'
+                                    );
+    
+    
+                                    $all_future_classes = $this->user_model->get_future_classes($insert_id);
+                                    $reset_curriculum_id = $all_future_classes[0]['curriculum_id'];
+                                    $curriculum_id = $reset_curriculum_id; // reset curriculum id for booked lesson
+    
+                                    $this->db->where("id",$insert_id);
+                                    $update = $this->db->update('class_schedules',array('curriculum_id'=>$reset_curriculum_id, 'update_google' => '1'));
+    
+    
+                                    $count = 0;
+                                    foreach ($all_future_classes as $future) {
+                                        
+                                        $class_schedule_to_be_updated = $future['id'];
+                                        if (isset($cid) === false) {
+                                            $cid = $reset_curriculum_id;
+                                        }
+    
+                                        $new_cid = $this->student_subscriptions_model->get_next_class_from_curriculum_id($cid);
+                                        $next_curriculum_id = $new_cid[0]->id;
+    
+                                        $this->db->where("id", $class_schedule_to_be_updated);
+                                        $update = $this->db->update('class_schedules',array('curriculum_id'=>$next_curriculum_id, 'update_google' => '1'));
+    
+                                        log_activity(
+                                        $user_id,
+                                        'Class ID ' . $class_schedule_to_be_updated . ' has been reset due to class booking ' . $insert_id,
+                                        'class_schedules'
+                                    );
+    
+                                        $cid = $next_curriculum_id;
                                     }
-
-
-                                    $admin_details_array = array('teacher_name' => $teacher_name,
-                                                                    'teacher_email' => $teacher_email, 
-                                                                    'student_email' => $student_email, 
-                                                                    'teacher_id' => $teacher_id,
-                                                                    'student_name' => $student_name, 
-                                                                    'start_date'=>$available_start_date,
-                                                                    'start_time'=>$start_time,                                                                            
-                                                                    'topic' => $curriculum_details['topic'],
-                                                                    'lesson_pdf' => $curriculum_details['lesson_pdf'],
-                                                                    'theme' => $curriculum_details['theme'],
-                                                                    'level' => $curriculum_details['level'],
-                                                                    'unit' => $curriculum_details['unit'],
-                                                                    'class_id'=>$insert_id,
-                                                                    'zoom_url'=>$zoom_url,
-                                                                    'zoom_meeting_owner' => $zoom_owner_email);
-
-                                    $admin_message = $this->load->view('_emails/class_booked_admin',$admin_details_array, TRUE);  
-
-                                    if(isset($post_data['double_class']) && $post_data['double_class'] === '0') {
-                                        $double_class = true;
-                                    } else {
-                                        $double_class = false;
-                                    }  
-
-                                    $teacher_message = $this->load->view('_emails/class_booked_teacher_pro',array('teacher_name' => $teacher_name,
-                                                                                                                'teacher_email' => $teacher_email,
-                                                                                                                'student_name' => $student_name,
-                                                                                                                'class_level' => $curriculum_details['level'],
-                                                                                                                'class_unit' => $curriculum_details['unit'],
-                                                                                                                'start_date'=>$available_start_date,
-                                                                                                                'start_time'=>$start_time,
-                                                                                                                'topic'=>$topic,
-                                                                                                                'zoom_url'=>$zoom_url,
-                                                                                                                'zoom_meeting_owner'=>$zoom_owner_email,
-                                                                                                                'zoom_meeting_owner_password'=>$zoom_owner_password,
-                                                                                                                'class_id' => $insert_id,
-                                                                                                                'double_class' => $double_class,
-                                                                                                                'lesson_pdf'=>$curriculum_details['lesson_pdf']), TRUE);
-
-                                    if ($student_meta->language === 'chinese') {
-                                        $student_message = $this->load->view('_emails/chinese_class_booked_student', array('student_name' => $student_name,'teacher_name' => $teacher_name,'start_date'=>$available_start_date,'start_time'=>$start_time,'topic'=>$topic,'lesson_no'=>$lesson_no,'zoom_url'=>$zoom_url), true);
-                                    } else {
-                                        $student_message = $this->load->view('_emails/class_booked_student', array('student_name' => $student_name,'teacher_name' => $teacher_name,'start_date'=>$available_start_date,'start_time'=>$start_time,'topic'=>$topic,'lesson_no'=>$lesson_no,'zoom_url'=>$zoom_url), true);
-                                    }
+                                } 
+    
+                                if($insert_id){
+                                        
+                                    $this->db->where("teacher_id ",$teacher_id);
+                                    $this->db->where("available_start_date ",$available_start_date);
+                                    $this->db->where("available_end_date ",$available_end_date);
+                                    $this->db->where("available_start_time BETWEEN '$n_start_time_1' AND '$n_start_time_2'");
+                                    $this->db->where("available_end_time BETWEEN '$n_end_time_1' AND '$n_end_time_2'");
+                                    $update = $this->db->update('teacher_availability',array('available_slot'=>0));
                                     
-                                    if (ENVIRONMENT == 'production') {
-                                        $to = $teacher_email;
-                                    } else {
-                                        $to = ADMIN_CLASS_NOTIFICATION;
-                                    }
-                                    
-                                    $subject = "New class booking";
-                                    
-                                    $message = $teacher_message;
-                                    // Always set content-type when sending HTML email
-                                    $headers = "MIME-Version: 1.0" . "\r\n";
-                                    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-                                    // More headers
-                                    $headers .= 'From: <support@englishgang.com>' . "\r\n";
-                                    
-                                    $this->load->library('email');
-                                    $config = array(
-                                        'protocol'  => 'mail',
-                                        'smtp_host' => SMTP_SERVER,
-                                        'smtp_port' => 465,
-                                        'smtp_user' => SMTP_USERNAME,
-                                        'smtp_pass' => SMTP_PASSWORD,
-                                        'mailtype'  => 'html',
-                                        'charset'   => 'utf-8'
-                                    ); 
-
-                                    $this->email->initialize($config);
-                                    $this->email->set_mailtype("html");
-                                    $this->email->set_newline("\r\n");
-
-                                    $this->email->to($to);
-                                    $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
-
-                                    $this->email->subject($subject);
-                                    $this->email->message($message);
-
-                                    //Send email
-                                    $this->email->send();
-
-                                    $this->email->clear();
-                                    $this->email->initialize($config);
-                                    $this->email->set_mailtype("html");
-                                    $this->email->set_newline("\r\n");
-
-                                    $this->email->to(ADMIN_CLASS_NOTIFICATION);
-                                    $subject = 'New class booking - Admin notification';
-                                    $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
-                                    $this->email->subject($subject);
-                                    $this->email->message($admin_message);
-                                    $this->email->send();
-
-                                    $this->email->clear();
-                                    $this->email->initialize($config);
-                                    $this->email->set_mailtype("html");
-                                    $this->email->set_newline("\r\n");
-
-                                    $this->email->to($student_email);
-                                    $subject = lang('class_booked');
-                                    $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
-                                    $this->email->subject($subject);
-                                    $this->email->message($student_message);
-                                    $this->email->send();
-                                    
-                                    if(isset($post_data['double_class']) && $post_data['double_class'] === '1'){
+                                    if($this->db->affected_rows() > 0){
                                         
-                                        // Get next class for student
-                                        $next_class = $this->student_subscriptions_model->get_next_class($post_data['student_id']);
-                                        Template::set('next_class', $next_class);
-                                        $post_data['lesson_details'] = lang("bf_lesson")." ".$next_class[0]->lesson_number." [ ".$next_class[0]->topic." ]";
+                                        // update Google calendar for single new class
+                                        $target_time_zone = new DateTimeZone(date_default_timezone_get());
+                                        $date_time = new DateTime('now', $target_time_zone);
+                                        $gmt_timezone = $date_time->format('P');;
                                         
-                                        $explode_start_date = explode(' ',$post_data['start']);
-                                        $explode_end_date = explode(' ',$post_data['end']);
+                                        $calendar_start_date = $available_start_date.'T'.date('H:i:s',strtotime($start_time)).'.000'.$gmt_timezone;
+                                        $calendar_end_date = $available_end_date.'T'.date('H:i:s',strtotime($end_time)).'.000'.$gmt_timezone;
                                         
-                                        $explode_e_start_date = explode('-',$explode_start_date[0]);
-                                        $event_start_month = 0;
-                                        $event_start_date = $explode_e_start_date[0].'-'.$explode_e_start_date[1].'-'.$explode_e_start_date[2];
+                                        $start_time = date('H:i A', strtotime($start_time));
+                      
+                                        $curriculum_details = $this->curriculum_model->load_curriculum_details($curriculum_id);
                                         
-                                        $start_time = $explode_start_date[1];
-                                        $selected_start_time = date("H:i:s", strtotime($start_time)+(30*60));
-                                    
-                                        $explode_e_end_date = explode('-',$explode_end_date[0]);
-                                        $event_end_month = 0;
-                                        $event_end_date = $explode_e_end_date[0].'-'.$explode_e_end_date[1].'-'.$explode_e_end_date[2];
+                                        $calendarId = $this->config->item('calendar_id');
+    
+                                        //$this->load->library('googleapi');
+                                        //$this->calendarapi = new Google_Service_Calendar($this->googleapi->client());
                                         
-                                        $end_time = $explode_end_date[1];
-                                        $selected_end_time = date("H:i:s", strtotime($end_time)+(30*60));
+                                        $title_html = 'EG-'.$insert_id.' ['.$student_name.'-'.$teacher_name.' - '.$zoom_url.'] '.$curriculum_details['topic']; 
+    
+                                        // $event = new Google_Service_Calendar_Event();
+                                        // $event->setSummary($title_html);
+                                        // $cal_start = new Google_Service_Calendar_EventDateTime();
+                                        // $cal_start->setDateTime($calendar_start_date);
+                                        // $event->setStart($cal_start);
+                                        // $cal_end = new Google_Service_Calendar_EventDateTime();
+                                        // $cal_end->setDateTime($calendar_end_date);
+                                        // $event->setEnd($cal_end);
                                         
-                                        $post_data['start'] = $event_start_date.' '.$selected_start_time;
-                                        $post_data['end'] = $event_end_date.' '.$selected_end_time;
-                                        $post_data['double_class'] = '0';
+                                        // // $attendee1 = new Google_Service_Calendar_EventAttendee();
+                                        // // $attendee1->setEmail($teacher_email);
                                         
-                                        $post_data['o_zoom_owner_email'] = $zoom_owner_email;
-                                        $post_data['o_zoom_owner_password'] = $zoom_owner_password;
-                                        $post_data['o_zoom_url'] = $zoom_url;
-                                        $post_data['o_zoom_id'] = $zoom_id;
-
+                                        // $attendee2 = new Google_Service_Calendar_EventAttendee();
+                                        // $attendee2->setEmail($student_email);
+                                        
+                                        // $attendees = array($attendee2);
+                                        // $event->attendees = $attendees;
+                                        
+                                        // $event->setICalUID('english_gang_'.$insert_id);
+                                        
+                                        // $importedEvent = $this->calendarapi->events->import($calendarId, $event);
+                                        
+                                        // $cal_event_id = $importedEvent->getId();
+                                        
+                                        // $optionalArguments = array("sendUpdates"=>"all");
+                                        // $this->calendarapi->events->update($calendarId, $cal_event_id, $event, $optionalArguments);
+                                        
+                                        // $this->db->where("id ",$insert_id);
+                                        // $update_class_schedule = $this->db->update('class_schedules',array('calendar_event_id'=>$cal_event_id));
+    
                                         if ($has_future_class === true) {
-                                            $post_data['has_future_class'] = 'yes';
+                                            // Update future classes in Google Calendar
+                                            //$this->user_model->reset_googlecal_future_classes($insert_id);                                        
+                                        }
+    
+    
+                                        $admin_details_array = array('teacher_name' => $teacher_name,
+                                                                        'teacher_email' => $teacher_email, 
+                                                                        'student_email' => $student_email, 
+                                                                        'teacher_id' => $teacher_id,
+                                                                        'student_name' => $student_name, 
+                                                                        'start_date'=>$available_start_date,
+                                                                        'start_time'=>$start_time,                                                                            
+                                                                        'topic' => $curriculum_details['topic'],
+                                                                        'lesson_pdf' => $curriculum_details['lesson_pdf'],
+                                                                        'theme' => $curriculum_details['theme'],
+                                                                        'level' => $curriculum_details['level'],
+                                                                        'unit' => $curriculum_details['unit'],
+                                                                        'class_id'=>$insert_id,
+                                                                        'zoom_url'=>$zoom_url,
+                                                                        'zoom_meeting_owner' => $zoom_owner_email);
+    
+                                        $admin_message = $this->load->view('_emails/class_booked_admin',$admin_details_array, TRUE);  
+    
+                                        if(isset($post_data['double_class']) && $post_data['double_class'] === '0') {
+                                            $double_class = true;
                                         } else {
-                                            $post_data['has_future_class'] = 'no';
+                                            $double_class = false;
+                                        }  
+    
+                                        $teacher_message = $this->load->view('_emails/class_booked_teacher_pro',array('teacher_name' => $teacher_name,
+                                                                                                                    'teacher_email' => $teacher_email,
+                                                                                                                    'student_name' => $student_name,
+                                                                                                                    'class_level' => $curriculum_details['level'],
+                                                                                                                    'class_unit' => $curriculum_details['unit'],
+                                                                                                                    'start_date'=>$available_start_date,
+                                                                                                                    'start_time'=>$start_time,
+                                                                                                                    'topic'=>$topic,
+                                                                                                                    'zoom_url'=>$zoom_url,
+                                                                                                                    'zoom_meeting_owner'=>$zoom_owner_email,
+                                                                                                                    'zoom_meeting_owner_password'=>$zoom_owner_password,
+                                                                                                                    'class_id' => $insert_id,
+                                                                                                                    'double_class' => $double_class,
+                                                                                                                    'lesson_pdf'=>$curriculum_details['lesson_pdf']), TRUE);
+    
+                                        if ($student_meta->language === 'chinese') {
+                                            $student_message = $this->load->view('_emails/chinese_class_booked_student', array('student_name' => $student_name,'teacher_name' => $teacher_name,'start_date'=>$available_start_date,'start_time'=>$start_time,'topic'=>$topic,'lesson_no'=>$lesson_no,'zoom_url'=>$zoom_url), true);
+                                        } else {
+                                            $student_message = $this->load->view('_emails/class_booked_student', array('student_name' => $student_name,'teacher_name' => $teacher_name,'start_date'=>$available_start_date,'start_time'=>$start_time,'topic'=>$topic,'lesson_no'=>$lesson_no,'zoom_url'=>$zoom_url), true);
                                         }
                                         
+                                        if (ENVIRONMENT == 'production') {
+                                            $to = $teacher_email;
+                                        } else {
+                                            $to = ADMIN_CLASS_NOTIFICATION;
+                                        }
                                         
-                                        $return_array = $this->save_new_lesson($post_data);
-                                    }
+                                        $subject = "New class booking";
+                                        
+                                        $message = $teacher_message;
+                                        // Always set content-type when sending HTML email
+                                        $headers = "MIME-Version: 1.0" . "\r\n";
+                                        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+                                        // More headers
+                                        $headers .= 'From: <support@englishgang.com>' . "\r\n";
+                                        
+                                        $this->load->library('email');
+                                        $config = array(
+                                            'protocol'  => 'mail',
+                                            'smtp_host' => SMTP_SERVER,
+                                            'smtp_port' => 465,
+                                            'smtp_user' => SMTP_USERNAME,
+                                            'smtp_pass' => SMTP_PASSWORD,
+                                            'mailtype'  => 'html',
+                                            'charset'   => 'utf-8'
+                                        ); 
+    
+                                        $this->email->initialize($config);
+                                        $this->email->set_mailtype("html");
+                                        $this->email->set_newline("\r\n");
+    
+                                        $this->email->to($to);
+                                        $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
+    
+                                        $this->email->subject($subject);
+                                        $this->email->message($message);
+    
+                                        //Send email
+                                        $this->email->send();
+    
+                                        $this->email->clear();
+                                        $this->email->initialize($config);
+                                        $this->email->set_mailtype("html");
+                                        $this->email->set_newline("\r\n");
+    
+                                        $this->email->to(ADMIN_CLASS_NOTIFICATION);
+                                        $subject = 'New class booking - Admin notification';
+                                        $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
+                                        $this->email->subject($subject);
+                                        $this->email->message($admin_message);
+                                        $this->email->send();
+    
+                                        $this->email->clear();
+                                        $this->email->initialize($config);
+                                        $this->email->set_mailtype("html");
+                                        $this->email->set_newline("\r\n");
+    
+                                        $this->email->to($student_email);
+                                        $subject = lang('class_booked');
+                                        $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
+                                        $this->email->subject($subject);
+                                        $this->email->message($student_message);
+                                        $this->email->send();
+                                        
+                                        if(isset($post_data['double_class']) && $post_data['double_class'] === '1'){
+                                            
+                                            // Get next class for student
+                                            $next_class = $this->student_subscriptions_model->get_next_class($post_data['student_id']);
+                                            Template::set('next_class', $next_class);
+                                            $post_data['lesson_details'] = lang("bf_lesson")." ".$next_class[0]->lesson_number." [ ".$next_class[0]->topic." ]";
+                                            
+                                            $explode_start_date = explode(' ',$post_data['start']);
+                                            $explode_end_date = explode(' ',$post_data['end']);
+                                            
+                                            $explode_e_start_date = explode('-',$explode_start_date[0]);
+                                            $event_start_month = 0;
+                                            $event_start_date = $explode_e_start_date[0].'-'.$explode_e_start_date[1].'-'.$explode_e_start_date[2];
+                                            
+                                            $start_time = $explode_start_date[1];
+                                            $selected_start_time = date("H:i:s", strtotime($start_time)+(60*60));
+                                        
+                                            $explode_e_end_date = explode('-',$explode_end_date[0]);
+                                            $event_end_month = 0;
+                                            $event_end_date = $explode_e_end_date[0].'-'.$explode_e_end_date[1].'-'.$explode_e_end_date[2];
+                                            
+                                            $end_time = $explode_end_date[1];
+                                            $selected_end_time = date("H:i:s", strtotime($end_time)+(60*60));
+                                            
+                                            $post_data['start'] = $event_start_date.' '.$selected_start_time;
+                                            $post_data['end'] = $event_end_date.' '.$selected_end_time;
+                                            $post_data['double_class'] = '0';
+                                            
+                                            $post_data['o_zoom_owner_email'] = $zoom_owner_email;
+                                            $post_data['o_zoom_owner_password'] = $zoom_owner_password;
+                                            $post_data['o_zoom_url'] = $zoom_url;
+                                            $post_data['o_zoom_id'] = $zoom_id;
+    
+                                            if ($has_future_class === true) {
+                                                $post_data['has_future_class'] = 'yes';
+                                            } else {
+                                                $post_data['has_future_class'] = 'no';
+                                            }
+                                            
+                                            
+                                            $return_array = $this->save_new_lesson($post_data);
+                                        }
+                                        else{
+                                            $return_array['status'] = 'inserted';
+                                        }      
+                                        
+                                    }//if $update
                                     else{
-                                        $return_array['status'] = 'inserted';
-                                    }      
-                                    
-                                }//if $update
+                                        $return_array['status'] = 'not_inserted';
+                                    }
+        
+                                }//if $insert_id
                                 else{
                                     $return_array['status'] = 'not_inserted';
                                 }
-    
-                            }//if $insert_id
+                                
+                            }// $active_lesson == 1
                             else{
-                                $return_array['status'] = 'not_inserted';
+                                $return_array['status'] = 'not_active';
                             }
-                            
-                        }// $active_lesson == 1
+                                        
+                        } // if $allowed = false
                         else{
-                            $return_array['status'] = 'not_active';
+                            $return_array['status'] = 'choose_previous_date_time';
                         }
-                                    
-                    } // if $allowed = false
+                        
+                    } // available_slot == 1
                     else{
-                        $return_array['status'] = 'choose_previous_date_time';
-                    }
-                    
-                } // available_slot == 1
+                        $return_array['status'] = 'slot_not_available';
+                    } //available_slot else
+                
+                }//has 1 hour slot
                 else{
-                    $return_array['status'] = 'slot_not_available';
-                } //available_slot else
+                    $return_array['status'] = 'no_hour_slot';
+                }//not has 1 hour slot
                 
             } // !empty(curriculum)
             else{
