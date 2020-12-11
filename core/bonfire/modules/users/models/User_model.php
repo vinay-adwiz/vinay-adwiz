@@ -1215,6 +1215,38 @@ class User_model extends BF_Model
             return false;
         }
     }
+    
+    //check if teacher has slot and is available for one hour
+    public function check_teacher_one_hour_slot($available_start_date, $start_time, $teacher_id, $is_first = true) {
+
+        $this->db->select('*');
+        $this->db->from('teacher_availability');
+        $this->db->where("available_start_date ",$available_start_date);
+        $this->db->where("available_start_time ",$start_time);
+        $this->db->where('available_slot', '1');
+        $this->db->where("teacher_id ",$teacher_id);
+        $prevQuery = $this->db->get();
+        $count = $prevQuery->num_rows();
+
+        if ($count > 0) {
+            if($is_first){
+                $start_time_30 = date("H:i:s", strtotime("+30 minutes", strtotime($start_time)));
+                $count_new = $this->check_teacher_one_hour_slot($available_start_date, $start_time_30, $teacher_id, false);
+                if ($count_new > 0) {
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+            else{
+                return true;
+            }
+            
+        } else {
+            return false;
+        }
+    }
 
     public function load_teacher_profile($teacher_id) {
 

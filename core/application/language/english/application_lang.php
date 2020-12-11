@@ -596,6 +596,7 @@ $lang['booking_err_class_not_avail'] = 'You cannot choose this class because it 
 $lang['booking_err_class_not_booked'] = 'This class has not been booked.';
 $lang['booking_err_not_open'] = 'This class is not available for booking.';
 $lang['booking_err_cant_select_date'] = 'You can only book a slot which is after your last scheduled booking';
+$lang['booking_err_teacher_has_not_hour_slot'] = 'The 1 hour booking is past the teacher availability';
 $lang['package_vat'] = 'VAT included';
 
 
