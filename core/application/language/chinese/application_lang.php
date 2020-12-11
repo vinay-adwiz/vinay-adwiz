@@ -342,6 +342,7 @@ $lang['my_classes'] = '我的课程';
 $lang['book_a_class'] = '预订课程';
 $lang['upcoming_classes'] = '将要来到的课程';
 $lang['completed_classes'] = '已学完的课程';
+$lang['my_users'] = 'My Account Users';
 
 $lang['submit'] = '同意';
 $lang['teacher'] = '老师的';
@@ -790,3 +791,5 @@ $lang['no_feedback'] = '学生目前没有任何反';
 $lang['unavailable_asseements'] = '不提供评估测试';
 
 $lang['slide_more'] = 'Please slide left to see more classes';
+$lang['manage_users'] = 'Manage Users';
+$lang['enter_emails'] = 'Add user emails. Please enter only 1 email per row.';

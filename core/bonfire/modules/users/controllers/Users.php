@@ -433,6 +433,68 @@ class Users extends Front_Controller
     }
 
     
+        /*
+     * Display the user list and manage the user deletions/banning/purge.
+     *
+     * @param string $filter The filter to apply to the list.
+     * @param int    $offset The offset from which the list will start.
+     *
+     * @return  void
+     */
+    public function manage_users()
+    {
+         // Make sure the user is logged in.
+        $this->auth->restrict();
+        $this->set_current_user();
+
+        $user_id = $this->current_user->id;
+
+        $all_users = $this->user_model->get_company_users($user_id);
+        $email_error = '';
+
+        if (isset($_POST['process_user_emails']) && $_POST['process_user_emails'] == '1') {
+
+            $emails = $this->input->post('users_emails');
+            $all_emails = explode(PHP_EOL, $emails);
+
+            
+            foreach ($all_emails as $user_email) {
+                if (empty($user_email) === false) {
+                    if ($this->form_validation->valid_email(trim($user_email)) === false) {
+                        $email_error .= $user_email . lang('is_invalid_email');
+                    }
+                }
+            }
+
+            if (empty($email_error)) {
+
+                $this->user_model->clear_company_users($user_id);
+
+                foreach ($all_emails as $user_email) {
+                    if (empty($user_email) === false) {
+                        $this->user_model->insert_company_users($user_id, $user_email);
+                    }
+                }
+
+                Template::set_message(lang('users_successfully_updated'), 'success');   
+            } else {
+                $error_message = lang('has_following_errors');
+                $error_message .= $email_error;
+                Template::set_message($error_message, 'error');
+            }
+        }
+
+        Template::set('email_error', $email_error);
+        Template::set('all_users', $all_users);
+
+        Template::set('menu_page_type', 'my_account');
+        Template::set('menu_subpage_type', 'manage_users');
+
+        Template::set_view('manage_users');
+        Template::render();
+    }
+
+
 
     /**
      * Cancel an account. Allow a user to request a refund is eligible

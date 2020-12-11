@@ -349,6 +349,7 @@ $lang['my_classes'] = 'My classes';
 $lang['book_a_class'] = 'Book a Class';
 $lang['upcoming_classes'] = 'Up-Coming Classes';
 $lang['completed_classes'] = 'Completed Classes';
+$lang['my_users'] = 'My Account Users';
 
 $lang['submit'] = 'Submit';
 $lang['gender'] = 'Select gender';
@@ -667,3 +668,5 @@ $lang['no_feedback'] = 'You have no feedback yet';
 $lang['unavailable_asseements'] = 'Unavailable for Assessments';
 
 $lang['slide_more'] = 'Please slide left to see more classes';
+$lang['manage_users'] = 'Manage Users';
+$lang['enter_emails'] = 'Add user emails. Please enter only 1 email per row.';

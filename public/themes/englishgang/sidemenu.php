@@ -33,6 +33,7 @@
                             <ul class="nav">
                                 <li <?php if (@$menu_subpage_type == 'update_profile') echo 'class="active"'; ?>><a href="<?php echo site_url("users/profile/"); ?>" title="Buttons"><span><?php echo lang('update_personal_details'); ?></span></a></li>
                                 <li <?php if (@$menu_subpage_type == 'change_password') echo 'class="active"'; ?>><a href="<?php echo site_url("users/password/"); ?>" title="Labels &amp; Badges"><span><?php echo lang('change_password'); ?></a></li>
+                                <li <?php if (@$menu_subpage_type == 'manage_users') echo 'class="active"'; ?>><a href="<?php echo site_url("users/manage_users/"); ?>" title="Labels &amp; Badges"><span><?php echo lang('manage_users'); ?></a></li>
                                 <li <?php if (@$menu_subpage_type == 'cancel_account') echo 'class="active"'; ?>><a href="<?php echo site_url("users/cancel/"); ?>" title="Labels &amp; Badges"><span><?php echo lang('bf_cancel_account'); ?></a></li>
                             </ul>
                         </div>

@@ -37,6 +37,9 @@ class User_model extends BF_Model
     /** @var string Name of the application answers table. */
     protected $application_answers_table = 'application_answers';
 
+    /** @var string Name of the company users table. */
+    protected $company_users_table = 'company_users';
+
     /** @var string Name of the curriculum table. */
     protected $curriculum_table = 'curriculum';
 
@@ -1629,5 +1632,38 @@ class User_model extends BF_Model
         }
 
     }
+
+    public function get_company_users($parent_account_id) {
+
+        $sql = "SELECT id, email FROM bf_company_users WHERE parent_account_id = ". $parent_account_id;
+
+        $query = $this->db->query($sql);
+        $result = $query->result_array();
+        return $result;
+
+    }
+
+    public function clear_company_users($company_user_id) {
+
+        // clear old referral codes (there should be any but just in case)
+        $this->db->where('parent_account_id', $company_user_id);
+        $this->db->delete($this->company_users_table); 
+
+        $this->db->flush_cache();
+        return true;
+    }
+
+    public function insert_company_users($company_user_id, $email) {
+
+        $obj = array(
+                'parent_account_id' => $company_user_id,
+                'email' => $email,
+            );
+
+        $this->db->insert($this->company_users_table, $obj); 
+        return true;
+    }
 }
 //end User_model
+
+

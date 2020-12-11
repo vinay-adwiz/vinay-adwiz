@@ -252,3 +252,7 @@ $lang['price'] = 'Price';
 $lang['my_classes'] = 'My Classes';
 $lang['classes_completed_to_date'] = 'Classes completed to date';
 
+
+$lang['users_successfully_updated'] = 'Users successfully updated';
+$lang['is_invalid_email'] = ' is an invalid email address<br />';
+$lang['has_following_errors'] = 'The following errors occurred:<br />';
