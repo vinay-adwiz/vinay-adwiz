@@ -779,20 +779,39 @@ class Users extends Front_Controller
                     $this->email->message($admin_message);
                     $this->email->send();
 
-                    $admin_to = ADMIN_CLASS_NOTIFICATION;
-                    $admin_subject = "Class Cancellation Admin notification";
+                    
+                    $student_message = $this->load->view('_emails/class_cancel_student_notification',array(), TRUE); 
+
                     $this->email->clear();
                     $this->email->initialize($config);
                     $this->email->set_mailtype("html");
                     $this->email->set_newline("\r\n");
-
-                    $student_message = $this->load->view('_emails/class_cancel_student_notification',array(), TRUE); 
 
                     $this->email->to($class_details['student']->email);
                     $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
                     $this->email->subject('Class cancellation');
                     $this->email->message($student_message);
                     $this->email->send();
+
+
+                    $additional_users = $this->user_model->get_company_users($user_id);
+                    // send to all users in group
+                    if (empty($additional_users) === false) {
+                        
+                        foreach ($additional_users as $key => $val) {
+                            $this->email->clear();
+                            $this->email->initialize($config);
+                            $this->email->set_mailtype("html");
+                            $this->email->set_newline("\r\n");
+
+                            $this->email->to($val['email']);
+                            $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
+                            $this->email->subject('Class cancellation');
+                            $this->email->message($student_message);
+                            $this->email->send();
+                        }
+                    }
+
 
                     Template::set_message(lang('success_cancelling_class'), 'success');
                     Template::redirect('/users/upcoming_classes');
@@ -1135,6 +1154,7 @@ class Users extends Front_Controller
     public function teacher($teacher_id)
     {
         $this->load->model('favorite_teachers/favorite_teachers_model');
+
 
         // Check for valid teacher
         if (empty($teacher_id) || $this->user_model->is_valid_teacher($teacher_id) === false) {
@@ -1710,6 +1730,7 @@ class Users extends Front_Controller
     
                                         if ($student_meta->language === 'chinese') {
                                             $student_message = $this->load->view('_emails/chinese_class_booked_student', array('student_name' => $student_name,'teacher_name' => $teacher_name,'start_date'=>$available_start_date,'start_time'=>$start_time,'topic'=>$topic,'lesson_no'=>$lesson_no,'zoom_url'=>$zoom_url), true);
+
                                         } else {
                                             $student_message = $this->load->view('_emails/class_booked_student', array('student_name' => $student_name,'teacher_name' => $teacher_name,'start_date'=>$available_start_date,'start_time'=>$start_time,'topic'=>$topic,'lesson_no'=>$lesson_no,'zoom_url'=>$zoom_url), true);
                                         }
@@ -1776,6 +1797,30 @@ class Users extends Front_Controller
                                         $this->email->subject($subject);
                                         $this->email->message($student_message);
                                         $this->email->send();
+                                        
+                                        $additional_users = $this->user_model->get_company_users($user_id);
+                                        // send to all users in group
+                                        if (empty($additional_users) === false) {
+                                            if ($student_meta->language === 'chinese') {
+                                                $student_message = $this->load->view('_emails/chinese_class_booked_student', array('student_name' => '','teacher_name' => $teacher_name,'start_date'=>$available_start_date,'start_time'=>$start_time,'topic'=>$topic,'lesson_no'=>$lesson_no,'zoom_url'=>$zoom_url), true);
+                                            } else {
+                                                $student_message = $this->load->view('_emails/class_booked_student', array('student_name' => '','teacher_name' => $teacher_name,'start_date'=>$available_start_date,'start_time'=>$start_time,'topic'=>$topic,'lesson_no'=>$lesson_no,'zoom_url'=>$zoom_url), true);
+                                            }
+
+                                            foreach ($additional_users as $key => $val) {
+                                                $this->email->clear();
+                                                $this->email->initialize($config);
+                                                $this->email->set_mailtype("html");
+                                                $this->email->set_newline("\r\n");
+            
+                                                $this->email->to($val['email']);
+                                                $subject = lang('class_booked');
+                                                $this->email->from(SUPPORT_EMAIL_EMAIL, EMAIL_FROM);
+                                                $this->email->subject($subject);
+                                                $this->email->message($student_message);
+                                                $this->email->send();
+                                            }
+                                        }
                                         
                                         if(isset($post_data['double_class']) && $post_data['double_class'] === '1'){
                                             
