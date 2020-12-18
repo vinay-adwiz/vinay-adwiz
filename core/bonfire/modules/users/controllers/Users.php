@@ -3449,7 +3449,7 @@ class Users extends Front_Controller
     
     public function register_student(){
         
-        header('Access-Control-Allow-Origin: *'); 
+        // header('Access-Control-Allow-Origin: *'); 
         
         $return_array = array();
         $meta_data = array();
