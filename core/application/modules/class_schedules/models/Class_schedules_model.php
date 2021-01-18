@@ -135,8 +135,15 @@ class Class_schedules_model extends BF_Model
     public function open_teacher_availability($slot_date, $slot_time, $teacher_id) {
 
     	$data = array('available_slot' => '1');
-    	return $this->db->update($this->teacher_availability_table, $data, array('teacher_id' => $teacher_id, 'available_start_date' => $slot_date, 'available_start_time' => $slot_time));
+    	$this->db->update($this->teacher_availability_table, $data, array('teacher_id' => $teacher_id, 'available_start_date' => $slot_date, 'available_start_time' => $slot_time));
 
+      // 2 slots booked so re-open next also
+      $first_slot = strtotime($slot_time);
+      $second_slot = date("H:i", strtotime('+30 minutes', $first_slot));
+
+      $this->db->update($this->teacher_availability_table, $data, array('teacher_id' => $teacher_id, 'available_start_date' => $slot_date, 'available_start_time' => $second_slot));
+
+      return true;
     }
 
 	public function has_class_booking($available_start_date, $start_time, $teacher_id) {
