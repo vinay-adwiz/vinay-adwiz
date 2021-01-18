@@ -1648,40 +1648,40 @@ class Users extends Front_Controller
                                         
                                         $calendarId = $this->config->item('calendar_id');
     
-                                        //$this->load->library('googleapi');
-                                        //$this->calendarapi = new Google_Service_Calendar($this->googleapi->client());
+                                        $this->load->library('googleapi');
+                                        $this->calendarapi = new Google_Service_Calendar($this->googleapi->client());
                                         
                                         $title_html = 'EG-'.$insert_id.' ['.$student_name.'-'.$teacher_name.' - '.$zoom_url.'] '.$curriculum_details['topic']; 
     
-                                        // $event = new Google_Service_Calendar_Event();
-                                        // $event->setSummary($title_html);
-                                        // $cal_start = new Google_Service_Calendar_EventDateTime();
-                                        // $cal_start->setDateTime($calendar_start_date);
-                                        // $event->setStart($cal_start);
-                                        // $cal_end = new Google_Service_Calendar_EventDateTime();
-                                        // $cal_end->setDateTime($calendar_end_date);
-                                        // $event->setEnd($cal_end);
+                                        $event = new Google_Service_Calendar_Event();
+                                        $event->setSummary($title_html);
+                                        $cal_start = new Google_Service_Calendar_EventDateTime();
+                                        $cal_start->setDateTime($calendar_start_date);
+                                        $event->setStart($cal_start);
+                                        $cal_end = new Google_Service_Calendar_EventDateTime();
+                                        $cal_end->setDateTime($calendar_end_date);
+                                        $event->setEnd($cal_end);
                                         
-                                        // // $attendee1 = new Google_Service_Calendar_EventAttendee();
-                                        // // $attendee1->setEmail($teacher_email);
+                                        // $attendee1 = new Google_Service_Calendar_EventAttendee();
+                                        // $attendee1->setEmail($teacher_email);
                                         
-                                        // $attendee2 = new Google_Service_Calendar_EventAttendee();
-                                        // $attendee2->setEmail($student_email);
+                                        $attendee2 = new Google_Service_Calendar_EventAttendee();
+                                        $attendee2->setEmail($student_email);
                                         
-                                        // $attendees = array($attendee2);
-                                        // $event->attendees = $attendees;
+                                        $attendees = array($attendee2);
+                                        $event->attendees = $attendees;
                                         
-                                        // $event->setICalUID('english_gang_'.$insert_id);
+                                        $event->setICalUID('english_gang_'.$insert_id);
                                         
-                                        // $importedEvent = $this->calendarapi->events->import($calendarId, $event);
+                                        $importedEvent = $this->calendarapi->events->import($calendarId, $event);
                                         
-                                        // $cal_event_id = $importedEvent->getId();
+                                        $cal_event_id = $importedEvent->getId();
                                         
-                                        // $optionalArguments = array("sendUpdates"=>"all");
-                                        // $this->calendarapi->events->update($calendarId, $cal_event_id, $event, $optionalArguments);
+                                        $optionalArguments = array("sendUpdates"=>"all");
+                                        $this->calendarapi->events->update($calendarId, $cal_event_id, $event, $optionalArguments);
                                         
-                                        // $this->db->where("id ",$insert_id);
-                                        // $update_class_schedule = $this->db->update('class_schedules',array('calendar_event_id'=>$cal_event_id));
+                                        $this->db->where("id ",$insert_id);
+                                        $update_class_schedule = $this->db->update('class_schedules',array('calendar_event_id'=>$cal_event_id));
     
                                         if ($has_future_class === true) {
                                             // Update future classes in Google Calendar
