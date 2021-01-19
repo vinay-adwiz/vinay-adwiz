@@ -541,11 +541,11 @@ $lang['favorite_removed'] = 'Favorites List has been deleted.';
 $lang['favorite_added'] = 'Add my favorite lists';
 $lang['register_online'] = 'Register Online';
 
-$lang['bf_manage_referrals'] = 'My reference code managent';
+$lang['bf_manage_referrals'] = 'Refer a Friend';
 $lang['referral_not_set_up'] = 'Please setup your reference code';
 $lang['create_referral_code'] = 'Create my reference code';
 $lang['your_referral_url'] = 'Your reference URL ';
-$lang['referral_instructions'] = 'Just tell a friend to register for an online English course with English Gang and immediately receive a 500-baht discount, valid the next time you buy a package. By';
+$lang['referral_instructions'] = 'Just tell a friend to register for an online English course with English Gang and immediately receive a 500-baht discount voucher if they purchase any package. Valid for one year.';
 $lang['error_buying_package'] = 'Payment failed. Please try again.';
 $lang['peak_hour_slot'] = 'Period attracting the greatest interest.';
 
