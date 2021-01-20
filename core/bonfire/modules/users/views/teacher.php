@@ -605,14 +605,26 @@ $(document).ready(function() {
                 
                 var start_date_time =  event_start_date.getFullYear()+'-'+event_start_date.getMonth()+'-'+event_start_date.getDate()+' '+event_start_date.getHours()+':'+event_start_date.getMinutes()+':'+event_start_date.getSeconds();
                 
+                var n_event_start_date = new Date(data.startDate);
+                n_event_start_date.setMinutes(n_event_start_date.getMinutes() + 60);
+                var n_months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                var n_days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                var n_start = event_start_date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });//12 hr format
+                var n_end = n_event_start_date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });//12 hr format
+                var new_date_time = n_days[n_event_start_date.getDay()] + ', ' + n_months[n_event_start_date.getMonth()] + ' ' + n_event_start_date.getDate() + ', ' + n_start + ' - ' + n_end;
+                
                 if(event_start_date > current_date){
+                    $('#myScheduler .popover-content .scheduler-event-recorder-date').hide();
                     $.ajax({
                         type: "POST",
                         url: "<?php echo site_url('users/check_has_next_class');?>",
                         data: {key:_key,start_date : start_date_time, teacher_id:teacher_id, student_id:student_id},
                         dataType: 'json',
                         success: function(response) {
+                            $('#myScheduler .popover-content .scheduler-event-recorder-date').show();
                             if(response.status == "slot_available"){
+                                
+                                $('#myScheduler .popover-content .scheduler-event-recorder-date').html(new_date_time);
 <?php
                                 if ($next_class[0]->id == ASSESSMENT_CLASS_ID) :                           
 ?>
