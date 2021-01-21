@@ -120,10 +120,10 @@ if (ENVIRONMENT == 'local') {
 	define('SCB_GATEWAY', 'https://nsips.scb.co.th/NSIPSWeb/NsipsMessageAction.do');
 	define('SCB_MERCHANT_ID', '1000018370');
 	define('SCB_TERMINAL', '12611897'); 
-	define('MAIN_WEBSITE_THAI_URL', 'http://englishgang.com/');
-	define('MAIN_WEBSITE_URL', 'http://t.englishgang.com/');
+	define('MAIN_WEBSITE_THAI_URL', 'http://englishgangcorp.com/');
+	define('MAIN_WEBSITE_URL', 'http://englishgangcorp.com/');
 	define('ADMIN_PORTAL_URL', 'http://portal.englishgangcorp.com/admin/');
-	define('WP_ADMIN_URL', 'http://t.englishgang.com/wp-admin/');
+	define('WP_ADMIN_URL', 'http://englishgangcorp.com/wp-admin/');
 	define('STUDENT_PORTAL_URL', 'https://learn.englishgangcorp.com/');
 	define('TEACHER_PORTAL_URL', 'http://portal.englishgangcorp.com/');
 	define('SUPPORT_EMAIL', 'support@englishgang.com');
