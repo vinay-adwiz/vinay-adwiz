@@ -40,7 +40,7 @@ $fieldData = array(
                             
                             <div class="content-box-wrapper pad20A">
                                 
-                                <img class="mrg25B center-margin radius-all-100 display-block" src="<?= base_url(); ?>assets/image-resources/gravatar.jpg" alt="">
+                                <img class="mrg25B center-margin display-block" src="<?= base_url(); ?>assets/image-resources/gravatar.jpg" alt="">
                                 <div class="message"></div>
                                 <div class="lang-select"><a href="<?php echo STUDENT_PORTAL_URL; ?>register/?lang=en">EN</a> | <a href="<?php echo STUDENT_PORTAL_URL; ?>register">ไทย</a> | <a href="<?php echo STUDENT_PORTAL_URL; ?>register/?lang=zh">中文</a></div>
                                 <?php Template::block('user_fields', 'user_fields', $fieldData); ?>

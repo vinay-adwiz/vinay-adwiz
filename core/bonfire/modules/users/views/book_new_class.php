@@ -6,7 +6,7 @@
             <div id="login-form" class="content-box bg-default">
                 
                 <div class="content-box-wrapper pad20A">
-                    <img class="mrg25B center-margin radius-all-100 display-block" src="<?= base_url(); ?>assets/image-resources/gravatar.jpg" alt="">
+                    <img class="mrg25B center-margin display-block" src="<?= base_url(); ?>assets/image-resources/gravatar.jpg" alt="">
                     <h3 class="text-center <?php echo 'text-'.$t_message['class']; ?>">
                         <?php echo $t_message['msg']; ?>    
                     </h3>

@@ -9,7 +9,7 @@
             <div id="login-form" class="content-box bg-default">
                 
                 <div class="content-box-wrapper pad20A">
-                    <img class="mrg25B center-margin radius-all-100 display-block" src="<?= base_url(); ?>assets/image-resources/gravatar.jpg" alt="">
+                    <img class="mrg25B center-margin display-block" src="<?= base_url(); ?>assets/image-resources/school-blue.png" alt="English Gang Corporate">
                     <?php echo Template::message(); ?>
                     <div class="lang-select"><a href="<?php echo STUDENT_PORTAL_URL; ?>login/?lang=en">EN</a> | <a href="<?php echo STUDENT_PORTAL_URL; ?>login">ไทย</a> | <a href="<?php echo STUDENT_PORTAL_URL; ?>login/?lang=zh">中文</a></div>
                     <div class="form-group">

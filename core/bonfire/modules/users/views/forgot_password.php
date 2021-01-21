@@ -11,7 +11,7 @@
                 
                 <div class="content-box-wrapper pad20A">
                     <div class="lang-select"><a href="<?php echo STUDENT_PORTAL_URL; ?>forgot_password/?lang=en">EN</a> | <a href="<?php echo STUDENT_PORTAL_URL; ?>forgot_password">ไทย</a> | <a href="<?php echo STUDENT_PORTAL_URL; ?>forgot_password/?lang=zh">中文</a></div>
-                    <img class="mrg25B center-margin radius-all-100 display-block" src="<?= base_url(); ?>assets/image-resources/gravatar.jpg" alt="">
+                    <img class="mrg25B center-margin display-block" src="<?= base_url(); ?>assets/image-resources/school-blue.png" alt="">
                     <?php echo Template::message(); ?>
                     <div class="alert alert-info fade in">
 						<?php echo lang('us_reset_note'); ?>
